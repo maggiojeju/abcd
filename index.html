@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>우리 반 칭찬 게시판 🌟</title>
+    <!-- Tailwind CSS 로드 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Pretendard & Noto Sans KR -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #f8fafc;
+        }
+        /* 카드 등장 애니메이션 */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(15px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .card-animate {
+            animation: fadeInUp 0.4s ease-out forwards;
+        }
+        /* 커스텀 스크롤바 */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="text-slate-800 min-h-screen flex flex-col">
+
+    <!-- 상단 헤더 영역 -->
+    <header class="bg-gradient-to-r from-amber-400 via-orange-400 to-rose-400 text-white shadow-md sticky top-0 z-10">
+        <div class="max-w-5xl mx-auto px-4 py-5 sm:py-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3 text-center sm:text-left">
+                <div class="bg-white/20 p-2.5 rounded-2xl backdrop-blur-sm">
+                    <i data-lucide="sparkles" class="w-7 h-7 text-yellow-100"></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl sm:text-3xl font-black tracking-tight drop-shadow-sm">우리 반 칭찬 게시판</h1>
+                    <p class="text-amber-50 text-xs sm:text-sm font-medium mt-0.5">친구들의 멋진 모습을 발견하고 따뜻한 마음을 전해요!</p>
+                </div>
+            </div>
+            
+            <!-- 연결 상태 및 총 칭찬 수 뱃지 -->
+            <div class="flex items-center gap-3">
+                <div id="connection-status" class="flex items-center gap-1.5 bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs font-medium">
+                    <span class="w-2 h-2 rounded-full bg-yellow-300 animate-pulse" id="status-dot"></span>
+                    <span id="status-text">연결 중...</span>
+                </div>
+                <div class="bg-white text-orange-600 px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-bold shadow-sm flex items-center gap-1.5">
+                    <i data-lucide="heart" class="w-4 h-4 fill-rose-500 text-rose-500"></i>
+                    <span>총 <span id="total-count">0</span>개의 칭찬</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 메인 컨텐츠 영역 -->
+    <main class="flex-1 max-w-5xl w-full mx-auto px-4 py-6 sm:py-8 space-y-8">
+        
+        <!-- 칭찬 작성 폼 카드 -->
+        <section class="bg-white rounded-3xl shadow-sm border border-slate-100 p-5 sm:p-7 transition-all hover:shadow-md">
+            <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                <i data-lucide="pen-line" class="w-5 h-5 text-orange-500"></i>
+                <span>새로운 칭찬 남기기</span>
+            </h2>
+            
+            <form id="praise-form" class="space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <!-- 칭찬받는 친구 이름 -->
+                    <div>
+                        <label for="target-name" class="block text-sm font-bold text-slate-700 mb-1.5">
+                            칭찬받는 친구 이름 <span class="text-rose-500">*</span>
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                <i data-lucide="user-check" class="w-4 h-4"></i>
+                            </div>
+                            <input type="text" id="target-name" required maxlength="20" placeholder="예: 김민수"
+                                class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 focus:bg-white transition-all">
+                        </div>
+                    </div>
+
+                    <!-- 보내는 사람 이름 (선택) -->
+                    <div>
+                        <label for="sender-name" class="block text-sm font-bold text-slate-700 mb-1.5">
+                            보내는 사람 <span class="text-slate-400 font-normal text-xs">(비워두면 '익명의 친구')</span>
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                <i data-lucide="smile" class="w-4 h-4"></i>
+                            </div>
+                            <input type="text" id="sender-name" maxlength="20" placeholder="예: 이지은 (또는 비워두기)"
+                                class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 focus:bg-white transition-all">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 카드 테마 색상 선택 -->
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-2">카드 색상 고르기</label>
+                    <div class="flex flex-wrap gap-2.5" id="color-picker">
+                        <button type="button" data-color="amber" class="color-btn w-8 h-8 rounded-full bg-amber-100 border-2 border-amber-500 ring-2 ring-amber-200 transition-transform scale-110" title="따뜻한 노랑"></button>
+                        <button type="button" data-color="rose" class="color-btn w-8 h-8 rounded-full bg-rose-100 border-2 border-transparent hover:scale-105 transition-transform" title="사랑스러운 분홍"></button>
+                        <button type="button" data-color="sky" class="color-btn w-8 h-8 rounded-full bg-sky-100 border-2 border-transparent hover:scale-105 transition-transform" title="시원한 하늘"></button>
+                        <button type="button" data-color="emerald" class="color-btn w-8 h-8 rounded-full bg-emerald-100 border-2 border-transparent hover:scale-105 transition-transform" title="싱그러운 연두"></button>
+                        <button type="button" data-color="purple" class="color-btn w-8 h-8 rounded-full bg-purple-100 border-2 border-transparent hover:scale-105 transition-transform" title="신비로운 보라"></button>
+                    </div>
+                </div>
+
+                <!-- 칭찬 내용 -->
+                <div>
+                    <div class="flex justify-between items-center mb-1.5">
+                        <label for="praise-content" class="block text-sm font-bold text-slate-700">
+                            칭찬 내용 <span class="text-rose-500">*</span>
+                        </label>
+                        <span id="char-count" class="text-xs text-slate-400">0 / 200자</span>
+                    </div>
+                    <textarea id="praise-content" required rows="3" maxlength="200" placeholder="친구의 어떤 점이 고맙고 멋졌나요? 구체적으로 적어주면 더 좋아요!"
+                        class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 focus:bg-white transition-all resize-none"></textarea>
+                </div>
+
+                <!-- 제출 버튼 -->
+                <div class="flex justify-end pt-1">
+                    <button type="submit" id="submit-btn"
+                        class="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-orange-500 to-rose-500 hover:from-orange-600 hover:to-rose-600 text-white font-bold rounded-xl shadow-md hover:shadow-lg transform active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <i data-lucide="send" class="w-4 h-4"></i>
+                        <span>칭찬 카드 붙이기</span>
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <!-- 필터 및 검색 영역 -->
+        <section class="flex flex-col sm:flex-row justify-between items-center gap-3">
+            <div class="flex items-center gap-2 self-start sm:self-auto">
+                <i data-lucide="layout-grid" class="w-5 h-5 text-slate-600"></i>
+                <h2 class="text-lg font-bold text-slate-800">모두의 칭찬 카드</h2>
+            </div>
+            
+            <div class="relative w-full sm:w-64">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                    <i data-lucide="search" class="w-4 h-4"></i>
+                </div>
+                <input type="text" id="search-input" placeholder="이름이나 내용으로 검색..."
+                    class="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 transition-all">
+            </div>
+        </section>
+
+        <!-- 칭찬 카드 목록 그리드 -->
+        <section id="cards-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            <!-- 로딩 스켈레톤 -->
+            <div class="col-span-full py-16 text-center text-slate-400 flex flex-col items-center justify-center gap-3" id="loading-state">
+                <div class="w-10 h-10 border-4 border-orange-200 border-t-orange-500 rounded-full animate-spin"></div>
+                <p class="text-sm font-medium">칭찬 카드를 불러오고 있어요...</p>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- 푸터 -->
+    <footer class="bg-slate-100 border-t border-slate-200 py-6 mt-12 text-center text-xs text-slate-500">
+        <p>우리 반의 따뜻한 소통 공간 • 실시간으로 모든 기기에 동기화됩니다</p>
+    </footer>
+
+    <!-- 커스텀 알림 토스트 메시지 (alert 대체) -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- 삭제 확인 모달 (confirm 대체) -->
+    <div id="delete-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl transform transition-all">
+            <div class="flex items-center gap-3 text-rose-600 mb-3">
+                <div class="bg-rose-100 p-2 rounded-full">
+                    <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+                </div>
+                <h3 class="text-lg font-bold text-slate-800">칭찬 카드 삭제</h3>
+            </div>
+            <p class="text-sm text-slate-600 mb-6">정말 이 칭찬 카드를 삭제할까요? 삭제된 카드는 복구할 수 없습니다.</p>
+            <div class="flex justify-end gap-2">
+                <button id="cancel-delete-btn" class="px-4 py-2 rounded-xl text-sm font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors">취소</button>
+                <button id="confirm-delete-btn" class="px-4 py-2 rounded-xl text-sm font-bold text-white bg-rose-500 hover:bg-rose-600 transition-colors">삭제하기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK 및 애플리케이션 로직 -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // 1. 제공된 Firebase 설정 및 환경 변수 처리
+        const defaultFirebaseConfig = {
+            apiKey: "AIzaSyCTEz6LX3UaDrbi6Q_fx0r9fkjgTr2zE4c",
+            authDomain: "test-478b1.firebaseapp.com",
+            projectId: "test-478b1",
+            storageBucket: "test-478b1.firebasestorage.app",
+            messagingSenderId: "495167084397",
+            appId: "1:495167084397:web:0552ff30369671c10fec64"
+        };
+
+        // 실행 환경에 따라 전역 설정이 있으면 사용하고, GitHub Pages 등 외부 호스팅에서는 제공된 설정 사용
+        const firebaseConfig = typeof __firebase_config !== 'undefined' 
+            ? JSON.parse(__firebase_config) 
+            : defaultFirebaseConfig;
+            
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'class-praise-board-default';
+
+        // Firebase 초기화
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Firestore 규칙에 맞춘 공용 데이터 경로
+        const PRAISES_COLLECTION_PATH = ['artifacts', appId, 'public', 'data', 'praises'];
+
+        // 상태 변수
+        let currentUser = null;
+        let allPraises = [];
+        let selectedColor = 'amber';
+        let cardToDelete = null;
+
+        // 색상 테마 매핑
+        const colorThemes = {
+            amber: { bg: 'bg-amber-50', border: 'border-amber-200', badge: 'bg-amber-200/70 text-amber-900', icon: 'text-amber-500' },
+            rose: { bg: 'bg-rose-50', border: 'border-rose-200', badge: 'bg-rose-200/70 text-rose-900', icon: 'text-rose-500' },
+            sky: { bg: 'bg-sky-50', border: 'border-sky-200', badge: 'bg-sky-200/70 text-sky-900', icon: 'text-sky-500' },
+            emerald: { bg: 'bg-emerald-50', border: 'border-emerald-200', badge: 'bg-emerald-200/70 text-emerald-900', icon: 'text-emerald-500' },
+            purple: { bg: 'bg-purple-50', border: 'border-purple-200', badge: 'bg-purple-200/70 text-purple-900', icon: 'text-purple-500' }
+        };
+
+        // DOM 요소 참조
+        const form = document.getElementById('praise-form');
+        const targetInput = document.getElementById('target-name');
+        const senderInput = document.getElementById('sender-name');
+        const contentInput = document.getElementById('praise-content');
+        const charCount = document.getElementById('char-count');
+        const submitBtn = document.getElementById('submit-btn');
+        const cardsContainer = document.getElementById('cards-container');
+        const totalCountEl = document.getElementById('total-count');
+        const searchInput = document.getElementById('search-input');
+        const statusDot = document.getElementById('status-dot');
+        const statusText = document.getElementById('status-text');
+        const deleteModal = document.getElementById('delete-modal');
+
+        // 아이콘 초기화
+        lucide.createIcons();
+
+        // 토스트 알림 함수
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const bgColor = type === 'success' ? 'bg-slate-800' : 'bg-rose-600';
+            
+            toast.className = `${bgColor} text-white px-4 py-3 rounded-xl shadow-lg text-sm font-medium flex items-center gap-2 transform transition-all duration-300 translate-y-2 opacity-0`;
+            toast.innerHTML = `
+                <i data-lucide="${type === 'success' ? 'check-circle-2' : 'alert-circle'}" class="w-4 h-4 shrink-0"></i>
+                <span>${message}</span>
+            `;
+            
+            container.appendChild(toast);
+            lucide.createIcons();
+
+            // 애니메이션 진입
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            });
+
+            // 3초 후 제거
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // 2. 인증 처리 (필수 규칙: 쿼리 실행 전 인증 완료)
+        async function initAuth() {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (error) {
+                console.error("인증 오류:", error);
+                updateConnectionStatus(false, "연결 실패 (인증 오류)");
+                showToast("서버 연결에 실패했습니다. Firebase 콘솔에서 익명 로그인을 활성화했는지 확인해주세요.", "error");
+            }
+        }
+
+        // 인증 상태 감지 후 실시간 데이터 구독 시작
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = user;
+                updateConnectionStatus(true, "실시간 동기화 중");
+                subscribeToPraises();
+            } else {
+                currentUser = null;
+                updateConnectionStatus(false, "연결 끊김");
+            }
+        });
+
+        function updateConnectionStatus(isConnected, text) {
+            statusText.textContent = text;
+            if (isConnected) {
+                statusDot.className = "w-2 h-2 rounded-full bg-emerald-300";
+            } else {
+                statusDot.className = "w-2 h-2 rounded-full bg-rose-400";
+            }
+        }
+
+        // 3. Firestore 실시간 구독 (규칙 준수: 단순 collection 쿼리 후 메모리에서 정렬)
+        function subscribeToPraises() {
+            if (!currentUser) return;
+
+            const praisesRef = collection(db, ...PRAISES_COLLECTION_PATH);
+            
+            onSnapshot(praisesRef, (snapshot) => {
+                const items = [];
+                snapshot.forEach((docSnap) => {
+                    items.push({
+                        id: docSnap.id,
+                        ...docSnap.data()
+                    });
+                });
+
+                // 최신순 정렬 (JavaScript 메모리 내 정렬)
+                items.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+                
+                allPraises = items;
+                totalCountEl.textContent = allPraises.length;
+                renderCards();
+            }, (error) => {
+                console.error("데이터 수신 오류:", error);
+                updateConnectionStatus(false, "권한 오류");
+                cardsContainer.innerHTML = `
+                    <div class="col-span-full bg-rose-50 border border-rose-200 rounded-2xl p-6 text-center text-rose-700">
+                        <p class="font-bold mb-1">데이터를 불러올 수 없습니다</p>
+                        <p class="text-xs">Firebase Firestore 보안 규칙 또는 네트워크 상태를 확인해주세요.</p>
+                    </div>
+                `;
+            });
+        }
+
+        // 4. 카드 렌더링 함수
+        function renderCards() {
+            const keyword = searchInput.value.trim().toLowerCase();
+            
+            const filtered = allPraises.filter(item => {
+                if (!keyword) return true;
+                const target = (item.targetName || '').toLowerCase();
+                const sender = (item.senderName || '').toLowerCase();
+                const content = (item.content || '').toLowerCase();
+                return target.includes(keyword) || sender.includes(keyword) || content.includes(keyword);
+            });
+
+            if (filtered.length === 0) {
+                cardsContainer.innerHTML = `
+                    <div class="col-span-full py-16 text-center text-slate-400 bg-white rounded-3xl border border-dashed border-slate-200 flex flex-col items-center justify-center gap-2">
+                        <i data-lucide="inbox" class="w-10 h-10 text-slate-300"></i>
+                        <p class="font-bold text-slate-600">${keyword ? '검색 결과가 없어요' : '아직 등록된 칭찬 카드가 없어요'}</p>
+                        <p class="text-xs">${keyword ? '다른 이름이나 단어로 검색해보세요!' : '첫 번째 칭찬의 주인공을 만들어보세요!'}</p>
+                    </div>
+                `;
+                lucide.createIcons();
+                return;
+            }
+
+            cardsContainer.innerHTML = filtered.map(item => {
+                const theme = colorThemes[item.color] || colorThemes.amber;
+                const dateStr = formatDate(item.createdAt);
+                const likes = item.likes || 0;
+                const isAuthor = currentUser && item.authorId === currentUser.uid;
+
+                // XSS 방지를 위한 텍스트 이스케이프 처리
+                const safeTarget = escapeHTML(item.targetName || '친구');
+                const safeSender = escapeHTML(item.senderName || '익명의 친구');
+                const safeContent = escapeHTML(item.content || '');
+
+                return `
+                    <article class="card-animate ${theme.bg} border ${theme.border} rounded-3xl p-5 shadow-sm hover:shadow-md transition-all flex flex-col justify-between relative group">
+                        <div>
+                            <!-- 카드 상단: 받는 사람 뱃지 및 삭제 버튼 -->
+                            <div class="flex items-start justify-between gap-2 mb-3">
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold ${theme.badge}">
+                                    <i data-lucide="award" class="w-3.5 h-3.5"></i>
+                                    To. ${safeTarget}
+                                </span>
+                                
+                                ${isAuthor ? `
+                                    <button onclick="window.openDeleteModal('${item.id}')" title="내가 쓴 카드 삭제"
+                                        class="text-slate-400 hover:text-rose-500 p-1 rounded-lg hover:bg-white/60 transition-colors">
+                                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                    </button>
+                                ` : ''}
+                            </div>
+
+                            <!-- 칭찬 본문 -->
+                            <p class="text-slate-800 text-sm sm:text-base leading-relaxed whitespace-pre-wrap break-words font-medium mb-4">
+                                ${safeContent}
+                            </p>
+                        </div>
+
+                        <!-- 카드 하단: 보낸 사람, 시간, 공감(하트) 버튼 -->
+                        <div class="pt-3 border-t border-black/5 flex items-center justify-between text-xs text-slate-500">
+                            <div class="flex flex-col">
+                                <span class="font-bold text-slate-700">From. ${safeSender}</span>
+                                <span class="text-[11px] text-slate-400 mt-0.5">${dateStr}</span>
+                            </div>
+
+                            <button onclick="window.handleLike('${item.id}')" 
+                                class="flex items-center gap-1.5 bg-white/80 hover:bg-white px-3 py-1.5 rounded-full shadow-xs border border-black/5 text-slate-700 font-bold hover:text-rose-500 active:scale-90 transition-all">
+                                <i data-lucide="heart" class="w-3.5 h-3.5 ${likes > 0 ? 'fill-rose-500 text-rose-500' : 'text-slate-400'}"></i>
+                                <span>${likes}</span>
+                            </button>
+                        </div>
+                    </article>
+                `;
+            }).join('');
+
+            lucide.createIcons();
+        }
+
+        // 5. 새 칭찬 등록 이벤트
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!currentUser) {
+                showToast("서버에 연결 중입니다. 잠시 후 다시 시도해주세요.", "error");
+                return;
+            }
+
+            const targetName = targetInput.value.trim();
+            const senderName = senderInput.value.trim() || '익명의 친구';
+            const content = contentInput.value.trim();
+
+            if (!targetName || !content) return;
+
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = `<div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div><span>저장 중...</span>`;
+
+            try {
+                const praisesRef = collection(db, ...PRAISES_COLLECTION_PATH);
+                await addDoc(praisesRef, {
+                    targetName,
+                    senderName,
+                    content,
+                    color: selectedColor,
+                    likes: 0,
+                    authorId: currentUser.uid,
+                    createdAt: Date.now()
+                });
+
+                // 폼 초기화 (보내는 사람 이름은 연속 작성을 위해 유지 가능하나 깔끔하게 비움)
+                targetInput.value = '';
+                contentInput.value = '';
+                charCount.textContent = '0 / 200자';
+                showToast(`${targetName} 친구에게 칭찬 카드를 보냈어요! 🎉`);
+            } catch (error) {
+                console.error("저장 오류:", error);
+                showToast("칭찬 카드를 저장하는 중 오류가 발생했습니다.", "error");
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = `<i data-lucide="send" class="w-4 h-4"></i><span>칭찬 카드 붙이기</span>`;
+                lucide.createIcons();
+            }
+        });
+
+        // 6. 좋아요(공감) 기능
+        window.handleLike = async (docId) => {
+            if (!currentUser) return;
+            try {
+                const docRef = doc(db, ...PRAISES_COLLECTION_PATH, docId);
+                await updateDoc(docRef, {
+                    likes: increment(1)
+                });
+            } catch (error) {
+                console.error("좋아요 업데이트 오류:", error);
+            }
+        };
+
+        // 7. 삭제 모달 및 삭제 실행
+        window.openDeleteModal = (docId) => {
+            cardToDelete = docId;
+            deleteModal.classList.remove('hidden');
+            deleteModal.classList.add('flex');
+        };
+
+        function closeDeleteModal() {
+            cardToDelete = null;
+            deleteModal.classList.add('hidden');
+            deleteModal.classList.remove('flex');
+        }
+
+        document.getElementById('cancel-delete-btn').addEventListener('click', closeDeleteModal);
+        
+        document.getElementById('confirm-delete-btn').addEventListener('click', async () => {
+            if (!cardToDelete || !currentUser) return;
+            try {
+                const docRef = doc(db, ...PRAISES_COLLECTION_PATH, cardToDelete);
+                await deleteDoc(docRef);
+                showToast("칭찬 카드가 삭제되었습니다.");
+            } catch (error) {
+                console.error("삭제 오류:", error);
+                showToast("삭제 중 오류가 발생했습니다.", "error");
+            } finally {
+                closeDeleteModal();
+            }
+        });
+
+        // UI 인터랙션 (글자 수 세기, 색상 선택, 검색)
+        contentInput.addEventListener('input', () => {
+            charCount.textContent = `${contentInput.value.length} / 200자`;
+        });
+
+        document.querySelectorAll('.color-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.color-btn').forEach(b => {
+                    b.classList.remove('border-amber-500', 'border-rose-500', 'border-sky-500', 'border-emerald-500', 'border-purple-500', 'ring-2', 'scale-110');
+                    b.classList.add('border-transparent');
+                });
+                
+                selectedColor = btn.dataset.color;
+                btn.classList.remove('border-transparent');
+                btn.classList.add(`border-${selectedColor}-500`, 'ring-2', `ring-${selectedColor}-200`, 'scale-110');
+            });
+        });
+
+        searchInput.addEventListener('input', renderCards);
+
+        // 유틸리티 함수: 날짜 포맷팅
+        function formatDate(timestamp) {
+            if (!timestamp) return '방금 전';
+            const date = new Date(timestamp);
+            const month = date.getMonth() + 1;
+            const day = date.getDate();
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            return `${month}월 ${day}일 ${hours}:${minutes}`;
+        }
+
+        // 유틸리티 함수: HTML 이스케이프
+        function escapeHTML(str) {
+            return str.replace(/[&<>'"]/g, tag => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                "'": '&#39;',
+                '"': '&quot;'
+            }[tag]));
+        }
+
+        // 앱 시작
+        initAuth();
+    </script>
+</body>
+</html>
